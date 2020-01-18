@@ -1,10 +1,9 @@
 package cc.task;
 
 
-import javax.json.Json;
-import javax.json.JsonBuilderFactory;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import javax.json.*;
 import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -29,10 +28,13 @@ public class Controller {
         }
         return bodyJson;
     }
-    private String makeErrorJson(Exception e){
 
 
-        return "jas";
+
+
+    private String makeErrorJson(String msg, int statusCode){
+        JsonObjectBuilder main = Json.createObjectBuilder();
+        return main.add("Status", statusCode).add("MSG", msg).build().toString();
     }
 
     @GET
@@ -42,6 +44,50 @@ public class Controller {
         return "Pinged jaaaaaa";
     }
 
+    @POST
+    @Path("insert")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response insert(@FormDataParam("k") String k, @FormDataParam("v") String jsonRaw){
+
+        System.out.println(k);
+        System.out.println(jsonRaw);
+
+        Runner runner = Runner.getInstance();
+        try{
+            runner.getDbMap().put(k, jsonRaw);
+        } catch (Exception e) {
+            return Response.status(400).entity(makeErrorJson(e.toString(),400)).build();
+        }
+        return Response.status(200).build();
+    }
+
+    @DELETE
+    @Path("delete")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response delete(@FormDataParam("k") String k){
+        Runner runner = Runner.getInstance();
+        try{
+            runner.getDbMap().remove(k);
+        } catch (Exception e) {
+            return Response.status(400).entity(makeErrorJson(e.toString(),400)).build();
+        }
+        return Response.status(200).build();
+    }
+
+    @GET
+    @Path("search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response search(@FormDataParam("k") String k){
+        Runner runner = Runner.getInstance();
+        String ret = "";
+        try{
+            ret = runner.getDbMap().get(k);
+        } catch (Exception e) {
+            return Response.status(400).entity(makeErrorJson(e.toString(),400)).build();
+        }
+        return Response.status(200).entity(ret).build();
+    }
 
 
     /*

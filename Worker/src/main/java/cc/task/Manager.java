@@ -29,7 +29,9 @@ public class Manager implements ServletContextListener {
                 System.out.println("Thread couldnt join for some reason: " + e);
             }
         }
+        if (runner != null) runner.closeDb();
         System.out.println("Bye Bye");
+
     }
 
 
