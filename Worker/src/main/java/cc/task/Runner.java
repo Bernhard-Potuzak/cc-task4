@@ -26,6 +26,8 @@ public class Runner implements Runnable {
         this.volPath = volPath;
         stopThread = false;
 
+        System.out.println("Creating Runner");
+
 
         try {
             this.db = DBMaker.fileDB(volPath + "/file.db").make();
@@ -36,7 +38,7 @@ public class Runner implements Runnable {
                     .valueSerializer(Serializer.STRING)
                     .createOrOpen();
         } catch (Exception e){
-            System.out.println("Could not make MapDb: " + e.toString());
+            System.out.println("Could not make MapDb. Is a Volume attached to the worker mounted to /shared?: " + e.toString());
             throw new IllegalArgumentException(e);
         }
 
@@ -57,7 +59,8 @@ public class Runner implements Runnable {
             try {
                 id = Integer.parseInt(System.getenv("id"));
             } catch (Exception e){
-                throw new IllegalArgumentException("Id is not an integer");
+                System.out.println("Id is not an integer or env Variable id is not set");
+                id = -1;
             }
             instance = new Runner(id, volPath);
         }

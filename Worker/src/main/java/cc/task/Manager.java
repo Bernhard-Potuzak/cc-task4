@@ -12,10 +12,14 @@ public class Manager implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
-        if (runner == null) {
-            runner = Runner.getInstance();
-            mainThread = new Thread(runner);
-            mainThread.start();
+        try {
+            if (runner == null) {
+                runner = Runner.getInstance();
+                mainThread = new Thread(runner);
+                mainThread.start();
+            }
+        } catch (Exception e){
+            System.out.println("Fail to initialize: " + e.toString());
         }
     }
 
