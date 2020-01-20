@@ -75,7 +75,7 @@ public class Controller {
         return Response.status(200).build();
     }
 
-    @GET
+    @POST
     @Path("search")
     @Produces(MediaType.APPLICATION_JSON)
     public Response search(@FormDataParam("k") String k){
