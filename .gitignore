@@ -2,5 +2,6 @@ Worker/Test.txt
 Worker/target
 Worker/.idea
 Worker/CPanel.iml
+Client/target
 Client/.idea
 Client/Client.iml
