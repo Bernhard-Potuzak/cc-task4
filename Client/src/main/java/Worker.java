@@ -1,4 +1,5 @@
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -13,6 +14,8 @@ import org.apache.http.util.EntityUtils;
 
 import javax.json.Json;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +61,28 @@ public class Worker {
         }
 
         return res;
+
+    }
+
+    String testRun(String fileName){
+
+        if (!fileName.contains(".csv")){
+            return "File Name should contain the ending .csv";
+        }
+        try {
+            BufferedWriter writer = Files.newBufferedWriter(Paths.get("./" + fileName));
+            CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used"));
+
+
+            csvPrinter.printRecord(100, "Test", 50);
+
+            csvPrinter.flush();
+
+        }catch(IOException e){
+            return "Error: " + e.toString();
+        }
+
+        return "Ended RestRun successfully";
 
     }
 
