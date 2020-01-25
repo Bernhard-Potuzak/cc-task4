@@ -1,0 +1,5 @@
+pring:
+  application:
+    name: Koordinator
+server:
+  port: 50001

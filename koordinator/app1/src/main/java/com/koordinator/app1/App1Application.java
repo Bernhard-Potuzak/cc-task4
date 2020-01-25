@@ -2,11 +2,12 @@ package com.koordinator.app1;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.Map;
 
 @SpringBootApplication
 @RestController
@@ -16,22 +17,28 @@ public class App1Application {
 		SpringApplication.run(App1Application.class, args);
 	}
 
-	@PostMapping("/insert/{k}/{a}")
-	public void insert(@PathVariable byte[] a,@PathVariable byte[] k){
+	@RequestMapping(value = "/insert", method = RequestMethod.POST)
+	public void insert(@RequestBody Map<String, Object> payload){
 		//TODO: implement insert
 	}
 
-	@PostMapping("/delete/{k}")
-	public void delete(@PathVariable byte[] k){
+	@RequestMapping(value = "/delete", method = RequestMethod.POST)
+	public void delete(@RequestBody Map<String, Object> payload){
 		//TODO: implement delete
 	}
-	@PostMapping("/search")
-	public void search(@PathVariable byte[] k){
+	@RequestMapping(value = "/search", method = RequestMethod.POST)
+	public void search(@RequestBody Map<String, Object> payload){
 		//TODO: implement search
 	}
-	@PostMapping("/range{k1}/{k2}")
-	public void range(@PathVariable byte[] k1,@PathVariable byte[] k2){
+	@RequestMapping(value = "/range", method = RequestMethod.POST)
+	public void range(@RequestBody Map<String, Object> payload){
 		//TODO: implement range
+	}
+
+	@RequestMapping(value = "/test", method = RequestMethod.GET)
+	public String test(){
+		//TODO: implement range
+		return "Koordinator is running";
 	}
 
 }
