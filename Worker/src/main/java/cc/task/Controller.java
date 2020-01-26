@@ -45,7 +45,7 @@ public class Controller {
     }
 
     @POST
-    @Path("insert")
+    @Path("/insert")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_FORM_URLENCODED)
     public Response insert(@FormDataParam("k") String k, @FormDataParam("v") String jsonRaw){
@@ -63,7 +63,7 @@ public class Controller {
     }
 
     @DELETE
-    @Path("delete")
+    @Path("/delete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response delete(@FormDataParam("k") String k){
         Runner runner = Runner.getInstance();
@@ -76,7 +76,7 @@ public class Controller {
     }
 
     @POST
-    @Path("search")
+    @Path("/search")
     @Produces(MediaType.APPLICATION_JSON)
     public Response search(@FormDataParam("k") String k){
         Runner runner = Runner.getInstance();

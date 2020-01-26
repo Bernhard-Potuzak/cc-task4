@@ -23,7 +23,7 @@ public class Main {
         boolean showMenu = true;
         Worker worker = Worker.getWorker();
         Scanner sc = new Scanner(System.in);
-        worker.setUrl("http://localhost:8080/Worker");
+        worker.setUrl("http://localhost:10101/Worker");
         while(true){
             if (showMenu) {
                 System.out.println("What you want: " + '\n' +
@@ -33,11 +33,17 @@ public class Main {
                         "s -> search (Enter then key of data), " + '\n' +
                         "t -> testRun (Enter and then Filename.csv), " + '\n' +
                         "h -> hash a Value. (Enter then String), " + '\n' +
-                        "m -> Show menu again");
+                        "m -> Show menu again, " + '\n' +
+                        "a -> Insert all if important");
                 showMenu = false;
             }
             userinput = sc.next().charAt(0);
             switch(userinput){
+                case 'a':
+                    if (worker.isInported){
+                        worker.insertAll();
+                    }
+                    break;
                 case 'c':
                     worker.importCSV();
                     break;

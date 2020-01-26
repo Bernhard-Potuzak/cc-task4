@@ -13,6 +13,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import javax.json.Json;
+import javax.swing.text.html.parser.Entity;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -120,6 +121,12 @@ public class Worker {
         return System.currentTimeMillis() - startTime;
     }
 
+    void insertAll(){
+        for(int i = 0; i < allData.size(); i++){
+            insertToWorker(i);
+        }
+    }
+
     String testRun(String fileName){
 
         CSVPrinter csvPrinter = null;
@@ -136,7 +143,6 @@ public class Worker {
         }
 
         long timeUsed;
-        int port = 1010;
 
         for (int i = 1; i <= 4; i++){
             setUrl("http://localhost:1010" + i + "/Worker");
@@ -146,6 +152,19 @@ public class Worker {
             } catch (Exception ignore){}
 
         }
+
+        setUrl("http://localost:10101/Worker");
+
+        for (int i = 0; i < 2; i++) {
+            try {
+                timeUsed = insertToWorker(ranPlace());
+                csvPrinter.printRecord(System.currentTimeMillis(), "Insert", timeUsed);
+            } catch (Exception e) {
+                System.out.println("Cannot insert: " + e.toString());
+            }
+        }
+
+
         try {
             csvPrinter.flush();
             writer.close();
@@ -219,15 +238,19 @@ public class Worker {
 
         if (res != null) System.out.println("Insert responded with Code: " + res.getStatusLine().getStatusCode());
 
-        InputStream body = null;
+        String body = null;
         try {
-            body = res.getEntity().getContent();
+            HttpEntity resEntity = res.getEntity();
+            body = EntityUtils.toString(resEntity);
+            EntityUtils.consume(resEntity);
+
+
         } catch (Exception e){
             System.out.println("Could not read Response Body");
         }
 
         if (body != null){
-            System.out.println("Response: " + body.toString());
+            System.out.println("Response: " + body);
         }
 
         long finish = System.currentTimeMillis();
