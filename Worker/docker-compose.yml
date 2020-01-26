@@ -1,7 +1,7 @@
 version: '3'
 services:
     worker1:
-        build: .
+        image: worker
         container_name: worker1
         ports:
             - "10101:8080"
@@ -9,7 +9,7 @@ services:
             - worker_vol_1:/shared
             
     worker2:
-        build: .
+        image: worker
         container_name: worker2
         ports:
             - "10102:8080"
@@ -17,7 +17,7 @@ services:
             - worker_vol_2:/shared
         
     worker3:
-        build: .
+        image: worker
         container_name: worker3
         ports:
             - "10103:8080"
@@ -25,7 +25,7 @@ services:
             - worker_vol_3:/shared
             
     worker4:
-        build: .
+        image: worker
         container_name: worker4
         ports:
             - "10104:8080"

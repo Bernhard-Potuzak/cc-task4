@@ -18,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.function.Function;
 
 public class Worker {
 
@@ -26,12 +28,17 @@ public class Worker {
     String url;
     private static Worker instance = null;
     private CloseableHttpClient httpClient;
+    boolean hasCSV;
+    private BufferedWriter staticWriter;
+    private CSVPrinter staticPrinter;
 
     private Worker() {
         this.isInported = false;
         url = null;
         this.allData = new ArrayList<>();
         httpClient = HttpClients.createDefault();
+        hasCSV = false;
+
     }
 
     public static Worker getWorker(){
@@ -39,6 +46,11 @@ public class Worker {
             instance = new Worker();
         }
         return instance;
+    }
+
+    int ranPlace(){
+        Random r = new Random();
+        return r.nextInt(allData.size()-1);
     }
 
     void setUrl(String url){
@@ -64,29 +76,140 @@ public class Worker {
 
     }
 
+    // Hashing Function with 64bit Initioal Hash + 64 Prime
+    public long hashMe(String k){
+        long hash = 0xcbf29ce484222325L;
+        long prime =  0x100000001b3L;
+        int kLen = k.length();
+        for (int i = 0; i < kLen; i++){
+            hash ^= k.charAt((i));
+            hash *= prime;
+        }
+
+        return hash;
+    }
+
+    void printToCSV(long timestamp, String action, long timeUsed) {
+        if (!hasCSV) {
+            try {
+                staticWriter = Files.newBufferedWriter(Paths.get("./" + "staticFile.csv"));
+                staticPrinter = new CSVPrinter(staticWriter, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used"));
+            } catch (IOException e) {
+                System.out.println("Error opening");
+                return;
+            }
+        }
+        try{
+            staticPrinter.printRecord(100, "Test", 50);
+            staticPrinter.flush();
+        } catch (Exception e){
+            System.out.println("Could not write to static file: " + e.toString());
+        }
+
+    }
+
+    long pingUrl(){
+        long startTime = System.currentTimeMillis();
+        HttpGet httpget = new HttpGet(url + "/ping");
+        try {
+            HttpResponse res = httpClient.execute(httpget);
+            System.out.println("Responded: " + res.getStatusLine().getStatusCode());
+        }catch(Exception e){
+            System.out.println("Could not ping: " + e.toString());
+        }
+        return System.currentTimeMillis() - startTime;
+    }
+
     String testRun(String fileName){
+
+        CSVPrinter csvPrinter = null;
+        BufferedWriter writer = null;
 
         if (!fileName.contains(".csv")){
             return "File Name should contain the ending .csv";
         }
         try {
-            BufferedWriter writer = Files.newBufferedWriter(Paths.get("./" + fileName));
-            CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used"));
-
-
-            csvPrinter.printRecord(100, "Test", 50);
-
-            csvPrinter.flush();
-
+            writer = Files.newBufferedWriter(Paths.get("./" + fileName));
+            csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used"));
         }catch(IOException e){
-            return "Error: " + e.toString();
+            return "Error while opening File: " + e.toString();
         }
 
+        long timeUsed;
+        int port = 1010;
+
+        for (int i = 1; i <= 4; i++){
+            setUrl("http://localhost:1010" + i + "/Worker");
+            timeUsed = pingUrl();
+            try {
+                csvPrinter.printRecord(System.currentTimeMillis(), "Ping", timeUsed);
+            } catch (Exception ignore){}
+
+        }
+        try {
+            csvPrinter.flush();
+            writer.close();
+        } catch (Exception ignored){}
         return "Ended RestRun successfully";
 
     }
 
-    void searchWorker(String key){
+    long delete(String key){
+        long start = System.currentTimeMillis();
+
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.addTextBody("k", key, ContentType.TEXT_PLAIN);
+
+        CloseableHttpResponse res = execMultiPart(builder, url + "/delete");
+
+        if (res != null) System.out.println("Delete responded with Code: " + res.getStatusLine().getStatusCode());
+
+        InputStream body = null;
+        try {
+            body = res.getEntity().getContent();
+        } catch (Exception e){
+            System.out.println("Could not read Response Body");
+        }
+
+        if (body != null){
+            System.out.println("Response: " + body.toString());
+        }
+
+        long finish = System.currentTimeMillis();
+        System.out.println("Delete Took " + (finish-start) + " ms to Execute");
+        return finish-start;
+    }
+
+    long range(String keyLower, String keyUpper){
+        long start = System.currentTimeMillis();
+
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.addTextBody("k1", keyLower, ContentType.TEXT_PLAIN);
+        builder.addTextBody("k2", keyUpper, ContentType.TEXT_PLAIN);
+
+        CloseableHttpResponse res = execMultiPart(builder, url + "/range");
+
+        if (res != null) System.out.println("Range responded with Code: " + res.getStatusLine().getStatusCode());
+
+        InputStream body = null;
+        try {
+            body = res.getEntity().getContent();
+        } catch (Exception e){
+            System.out.println("Could not read Response Body");
+        }
+
+        if (body != null){
+            System.out.println("Response: " + body.toString());
+        }
+
+        long finish = System.currentTimeMillis();
+        System.out.println("Range Took " + (finish-start) + " ms to Execute");
+        return finish-start;
+    }
+
+
+
+    long searchWorker(String key){
         long start = System.currentTimeMillis();
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -109,12 +232,14 @@ public class Worker {
 
         long finish = System.currentTimeMillis();
         System.out.println("Search Took " + (finish-start) + " ms to Execute");
+        return finish-start;
     }
 
-    void insertToWorker(int place){
+
+    long insertToWorker(int place){
         if (place >= allData.size() || place < 0){
             System.out.println("Place out of Bounds");
-            return;
+            return -1;
         }
         long start = System.currentTimeMillis();
 
@@ -129,20 +254,9 @@ public class Worker {
 
         long finish = System.currentTimeMillis();
         System.out.println("Insert Took " + (finish-start) + " ms to Execute. (Inserted " + data.key + ")");
+        return finish-start;
 
     }
-
-    void pingUrl(){
-        HttpGet httpget = new HttpGet(url + "/ping");
-        try {
-            HttpResponse res = httpClient.execute(httpget);
-            System.out.println("Responded: " + res.getStatusLine().getStatusCode());
-        }catch(Exception e){
-            System.out.println("Could not ping: " + e.toString());
-        }
-    }
-
-
 
     void importCSV() throws FileNotFoundException {
         String fileName = getClass().getClassLoader().getResource("netflix.csv").getFile();

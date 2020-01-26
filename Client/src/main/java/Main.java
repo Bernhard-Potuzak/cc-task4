@@ -19,15 +19,35 @@ public class Main {
 
     public static void loop() throws Exception {
         char userinput;
+        int modFac = 16;
+        boolean showMenu = true;
         Worker worker = Worker.getWorker();
         Scanner sc = new Scanner(System.in);
         worker.setUrl("http://localhost:8080/Worker");
         while(true){
-            System.out.println("What you want: ( c -> Import CSV, x -> exit, u -> set URL (Enter then type url), p -> Ping Url, i -> Insert (enter then type 0-DataSize), s -> search (Enter then key of data), t -> testRun (Enter and then Filename.csv");
+            if (showMenu) {
+                System.out.println("What you want: " + '\n' +
+                        "c -> Import CSV, x -> exit, " + '\n' +
+                        "u -> set URL (Enter then type url), " + '\n' +
+                        "p -> Ping Url, i -> Insert (enter then type 0-DataSize), " + '\n' +
+                        "s -> search (Enter then key of data), " + '\n' +
+                        "t -> testRun (Enter and then Filename.csv), " + '\n' +
+                        "h -> hash a Value. (Enter then String), " + '\n' +
+                        "m -> Show menu again");
+                showMenu = false;
+            }
             userinput = sc.next().charAt(0);
             switch(userinput){
                 case 'c':
                     worker.importCSV();
+                    break;
+                case 'h':
+                    String h = sc.next();
+                    long hashed = worker.hashMe(h);
+                    System.out.println(h + " hashes to " + hashed + " and maps with mod " + modFac + " " + hashed%modFac);
+                    break;
+                case 'm':
+                    showMenu = true;
                     break;
                 case 'i':
                     if (worker.isInported) {
