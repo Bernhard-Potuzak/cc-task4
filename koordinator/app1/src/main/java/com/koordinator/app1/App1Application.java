@@ -13,7 +13,38 @@ import java.util.Map;
 @RestController
 public class App1Application {
 
+	public static String[] WorkerAddresses = {
+			"http://localhost:10101/",
+			"http://localhost:10102/",
+			"http://localhost:10103/",
+			"http://localhost:10104/"
+	};
+
+	public static String[] AssignedAddresses = new String[16];
+
+	public static void setAssignedAddresses() {
+		for (int i = 0; i < AssignedAddresses.length; i++) {
+			if (i % 4 == 0) {
+				AssignedAddresses[i] = WorkerAddresses[i % 4];
+			}
+		}
+	}
+
+	public static String computeAddress(String key) {
+		long hash = new FNVHash().hash(key.getBytes());
+		int initialIndex = (int) (hash % 16);
+		while (AssignedAddresses[initialIndex] == null) {
+			if (initialIndex != 0) {
+				initialIndex -= 1;
+			} else {
+				initialIndex = 16;
+			}
+		}
+		return AssignedAddresses[initialIndex];
+	}
+
 	public static void main(String[] args) {
+		setAssignedAddresses();
 		SpringApplication.run(App1Application.class, args);
 	}
 
