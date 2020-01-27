@@ -11,10 +11,14 @@ import org.springframework.core.io.ClassPathResource;
 
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootApplication
@@ -40,9 +44,9 @@ public class App1Application {
 
     public static String computeAddress(String key) {
         long hash = new FNVHash().hash(key.getBytes());
-        int initialIndex = (int) (hash % 16);
+        int initialIndex = Math.abs((int) (hash % 16));
         while (AssignedAddresses[initialIndex] == null) {
-            if (initialIndex != 0) {
+            if (initialIndex > 0) {
                 initialIndex -= 1;
             } else {
                 initialIndex = 16;
@@ -50,7 +54,9 @@ public class App1Application {
         }
         return AssignedAddresses[initialIndex];
     }
-    public static String getResponse(String address,String k,String v,HttpServletRequest request) throws URISyntaxException {
+
+
+    public static AppResponseInsert getResponseInsert(String address,String k,String v,HttpServletRequest request) throws URISyntaxException {
         try {
             URL url = new URL(address);
             String requestUri = "/Worker" + request.getRequestURI();
@@ -64,14 +70,34 @@ public class App1Application {
 
             HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
                     map, headers);
-            ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
+            ResponseEntity<AppResponseInsert> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, AppResponseInsert.class);
             return responseEntity.getBody();
         } catch (MalformedURLException e) {
-            return "";
+            return null;
         }
     }
 
-    public static String getResponse(String address,String k,HttpServletRequest request) throws URISyntaxException {
+    public static AppResponseSearch getResponseSearch(String address, String k, HttpServletRequest request) throws URISyntaxException {
+        try {
+            URL url = new URL(address);
+            String requestUri = "/Worker/search";
+            URI uri = new URI(url.getProtocol(), null, url.getHost(), url.getPort(), requestUri, request.getQueryString(), null);
+            RestTemplate restTemplate = new RestTemplate();
+            LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+            map.add("k", k);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
+                    map, headers);
+            ResponseEntity<AppResponseSearch> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, AppResponseSearch.class);
+            return responseEntity.getBody();
+        } catch (MalformedURLException e) {
+            return null;
+        }
+    }
+
+    public static AppResponseDelete getResponseDelete(String address,String k,HttpServletRequest request) throws URISyntaxException {
         try {
             URL url = new URL(address);
             String requestUri = "/Worker" + request.getRequestURI();
@@ -84,11 +110,31 @@ public class App1Application {
 
             HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = new HttpEntity<LinkedMultiValueMap<String, Object>>(
                     map, headers);
-            ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
+            ResponseEntity<AppResponseDelete> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, AppResponseDelete.class);
             return responseEntity.getBody();
         } catch (MalformedURLException e) {
-            return "";
+            return null;
         }
+    }
+
+    public static List<AppResponseSearch> getResponseRange(String k1, String k2, HttpServletRequest request) throws URISyntaxException {
+        List<AppResponseSearch> responses = new ArrayList<AppResponseSearch>();
+        for (String address : WorkerAddresses) {
+            try {
+                AppResponseSearch response = getResponseSearch(address, k1, request);
+                responses.add(response);
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            }
+            try {
+                AppResponseSearch response = getResponseSearch(address, k2, request);
+                responses.add(response);
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            }
+        }
+
+        return responses;
     }
 
     public static void main(String[] args) {
@@ -98,30 +144,30 @@ public class App1Application {
 
     @RequestMapping(value = "/insert", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseBody
-    public String insert(@RequestParam("k") String k,
+    public AppResponseInsert insert(@RequestParam("k") String k,
                          @RequestParam("v") String jsonRaw, HttpServletRequest request) throws URISyntaxException {
         String address = computeAddress(k);
-        return getResponse(address, k, jsonRaw, request);
+        return getResponseInsert(address, k, jsonRaw, request);
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.POST, consumes = "multipart/form-data")
     @ResponseBody
-    public String delete(@RequestParam("k") String k, HttpServletRequest request) throws URISyntaxException {
+    public AppResponseDelete delete(@RequestParam("k") String k, HttpServletRequest request) throws URISyntaxException {
         String address = computeAddress(k);
-        return getResponse(address, k, request);
+        return getResponseDelete(address, k, request);
     }
 
     @RequestMapping(value = "/search", method = RequestMethod.POST, consumes = "multipart/form-data")
-    public String search(@RequestParam("k") String k, HttpServletRequest request) throws URISyntaxException {
+    @ResponseBody
+    public AppResponse search(@RequestParam("k") String k, HttpServletRequest request) throws URISyntaxException {
         String address = computeAddress(k);
-        return getResponse(address, k, request);
+        return getResponseSearch(address, k, request);
     }
 
-/*    @RequestMapping(value = "/range", method = RequestMethod.POST)
-    public String range(@RequestBody Map<String, Object> payload, HttpServletRequest request) throws URISyntaxException {
-        String address = "http://localhost:10101/";
-        return getResponse(address, k, jsonRaw, request);
-    }*/
+    @RequestMapping(value = "/range", method = RequestMethod.POST, consumes = "multipart/form-data")
+    public List<AppResponseSearch> range(@RequestParam("k1") String k1, @RequestParam("k2") String k2, HttpServletRequest request) throws URISyntaxException {
+        return getResponseRange(k1, k2, request);
+    }
 
     @RequestMapping(value = "/test", method = RequestMethod.GET)
     public String test() {
