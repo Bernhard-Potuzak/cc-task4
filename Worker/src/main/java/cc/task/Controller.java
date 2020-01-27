@@ -41,14 +41,14 @@ public class Controller {
 
     private String makeStatusJson(String fileCreatedName, boolean fileCreated, String fileName, long fileSize, String body){
         JsonObjectBuilder main = Json.createObjectBuilder();
-        return main.add(fileCreatedName, fileCreated).add("fileName", fileName).add("fileSize", fileSize).add("RespBody", body).build().toString();
+        return main.add(fileCreatedName, fileCreated).add("fileName", fileName).add("fileSize", fileSize).add("workerId", Runner.getInstance().getId()).add("RespBody", body).build().toString();
     }
 
     @GET
     @Path("/ping")
-    public String getMsg()
+    public Response getMsg()
     {
-        return "Pinged jaaaaaa";
+        return Response.status(200).build();
     }
 
     @POST
@@ -116,7 +116,7 @@ public class Controller {
         */
     }
 
-    @DELETE
+    @POST
     @Path("/delete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response delete(@FormDataParam("k") String k){
@@ -176,7 +176,7 @@ public class Controller {
 
         if (!exist){
             resString = makeStatusJson("file_exist", false, fileName, 0,"");
-            return Response.status(200).entity(resString).build();
+            return Response.status(404).entity(resString).build();
         }
 
         String content = "";

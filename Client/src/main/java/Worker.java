@@ -28,8 +28,7 @@ public class Worker {
     private static Worker instance = null;
     private CloseableHttpClient httpClient;
     boolean hasCSV;
-    private BufferedWriter staticWriter;
-    private CSVPrinter staticPrinter;
+
 
     private Worker() {
         this.isInported = false;
@@ -88,24 +87,7 @@ public class Worker {
         return hash;
     }
 
-    void printToCSV(long timestamp, String action, long timeUsed) {
-        if (!hasCSV) {
-            try {
-                staticWriter = Files.newBufferedWriter(Paths.get("./" + "staticFile.csv"));
-                staticPrinter = new CSVPrinter(staticWriter, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used"));
-            } catch (IOException e) {
-                System.out.println("Error opening");
-                return;
-            }
-        }
-        try{
-            staticPrinter.printRecord(100, "Test", 50);
-            staticPrinter.flush();
-        } catch (Exception e){
-            System.out.println("Could not write to static file: " + e.toString());
-        }
 
-    }
 
     long pingUrl(){
         long startTime = System.currentTimeMillis();
@@ -135,7 +117,7 @@ public class Worker {
         }
         try {
             writer = Files.newBufferedWriter(Paths.get("./" + fileName));
-            csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used"));
+            csvPrinter = new CSVPrinter(writer, CSVFormat.EXCEL.withHeader("timestamp", "action", "time_used","response"));
         }catch(IOException e){
             return "Error while opening File: " + e.toString();
         }
@@ -165,8 +147,9 @@ public class Worker {
 
         for (int i = 0; i < 2; i++) {
             try {
-                timeUsed = insertToWorker(ranPlace());
-                csvPrinter.printRecord(System.currentTimeMillis(), "Insert", timeUsed);
+                long start = System.currentTimeMillis();
+                String response = insertToWorker(ranPlace());
+                csvPrinter.printRecord(System.currentTimeMillis(), "Insert", System.currentTimeMillis()-start, response);
             } catch (Exception e) {
                 System.out.println("Cannot insert: " + e.toString());
             }
@@ -181,7 +164,7 @@ public class Worker {
 
     }
 
-    long delete(String key){
+    String delete(String key){
         long start = System.currentTimeMillis();
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -189,15 +172,13 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/delete");
 
-        if (res != null) System.out.println("Delete responded with Code: " + res.getStatusLine().getStatusCode());
-
-        String body = readResponse(res);
+        String body = readResponse(res, "delete");
         long finish = System.currentTimeMillis();
         System.out.println("Delete Took " + (finish-start) + " ms to Execute");
-        return finish-start;
+        return body;
     }
 
-    long range(String keyLower, String keyUpper){
+    String range(String keyLower, String keyUpper){
         long start = System.currentTimeMillis();
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -206,15 +187,15 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/range");
 
-        String body = readResponse(res);
+        String body = readResponse(res, "range");
         long finish = System.currentTimeMillis();
         System.out.println("Range Took " + (finish-start) + " ms to Execute");
-        return finish-start;
+        return body;
     }
 
 
 
-    long searchWorker(String key){
+    String searchWorker(String key){
         long start = System.currentTimeMillis();
 
         MultipartEntityBuilder builder = MultipartEntityBuilder.create();
@@ -222,18 +203,18 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/search");
 
-        String body = readResponse(res);
+        String body = readResponse(res, "search");
         long finish = System.currentTimeMillis();
         System.out.println("Search Took " + (finish-start) + " ms to Execute");
-        return finish-start;
+        return body;
     }
 
-    private String readResponse(CloseableHttpResponse res) {
+    private String readResponse(CloseableHttpResponse res, String method) {
         String body = null;
         if (res != null){
-            System.out.println("Insert responded with Code: " + res.getStatusLine().getStatusCode());
+            System.out.println(method + " responded with Code: " + res.getStatusLine().getStatusCode());
         } else {
-            System.out.println("Respond was null");
+            System.out.println(method + " Respond was null");
             return "";
         }
         try {
@@ -243,21 +224,21 @@ public class Worker {
 
 
         } catch (Exception e){
-            System.out.println("Could not read Response Body");
+            System.out.println(method + " Could not read Response Body");
         }
 
         if (body != null){
-            System.out.println("Response: " + body);
+            System.out.println(method + " Response Body: " + body);
         }
 
         return body;
     }
 
 
-    long insertToWorker(int place){
+    String insertToWorker(int place){
         if (place >= allData.size() || place < 0){
             System.out.println("Place out of Bounds");
-            return -1;
+            return "";
         }
         long start = System.currentTimeMillis();
 
@@ -268,11 +249,11 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/insert");
 
-        String body = readResponse(res);
+        String body = readResponse(res, "insert");
 
         long finish = System.currentTimeMillis();
         System.out.println("Insert Took " + (finish-start) + " ms to Execute. (Inserted " + data.key + ")");
-        return finish-start;
+        return body;
 
     }
 
