@@ -59,6 +59,7 @@ public class Main {
                         "r -> range (Enter then key1 Enter then key2), " + '\n' +
                         "d -> delete (Enter then key of data), " + '\n' +
                         "t -> testRun (Enter and then Filename.csv), " + '\n' +
+                        "l -> Check Data in place. Enter then place, " + '\n' +
                         "h -> hash a Value. (Enter then String), " + '\n' +
                         "m -> Show menu again, " + '\n' +
                         "a -> Insert all if imported");
@@ -66,6 +67,8 @@ public class Main {
             }
             userInput = sc.next().charAt(0);
             switch(userInput){
+                case'l':
+                    
                 case 'a':
                     if (worker.isInported){
                         worker.insertAll();
