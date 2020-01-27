@@ -13,14 +13,13 @@ import java.nio.file.Files;
 
 
 public class Runner implements Runnable {
-    private Client client;
     private String volPath;
 
-    public boolean stopThread;
+    boolean stopThread;
     private int id;
     private DB db = null;
     private HTreeMap<String, String> dbMap;
-    public String fileName;
+    String fileName;
 
     private Runner(int id, String volPath) {
         this.id = id;
@@ -29,25 +28,21 @@ public class Runner implements Runnable {
 
         System.out.println("Creating Runner");
 
-
         try {
             this.fileName = volPath + "/file.db";
+            /*
             this.db = DBMaker.fileDB(volPath + "/file.db").make();
-            System.out.println("db created, create dbMap");
-            this.dbMap = db
+            // System.out.println("db created, create dbMap");
+            //this.dbMap = db
                     .hashMap("dbMap")
                     .keySerializer(Serializer.STRING)
                     .valueSerializer(Serializer.STRING)
                     .createOrOpen();
+                    */
         } catch (Exception e){
             System.out.println("Could not make MapDb. Is a Volume attached to the worker mounted to /shared?: " + e.toString());
             throw new IllegalArgumentException(e);
         }
-
-
-        client = ClientBuilder.newClient();
-        client.property(ClientProperties.CONNECT_TIMEOUT, 2000);
-        client.property(ClientProperties.READ_TIMEOUT, 2000);
 
         System.out.println("Runner created without error");
     }

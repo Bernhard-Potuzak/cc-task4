@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Path("")
 public class Controller {
@@ -37,9 +39,9 @@ public class Controller {
         return main.add("Status", statusCode).add("MSG", msg).build().toString();
     }
 
-    private String makeStatusJson(boolean fileCreated, String fileName, long fileSize){
+    private String makeStatusJson(String fileCreatedName, boolean fileCreated, String fileName, long fileSize, String body){
         JsonObjectBuilder main = Json.createObjectBuilder();
-        return main.add("File_create", fileCreated).add("fileName", fileName).add("fileSize", fileSize).build().toString();
+        return main.add(fileCreatedName, fileCreated).add("fileName", fileName).add("fileSize", fileSize).add("RespBody", body).build().toString();
     }
 
     @GET
@@ -71,6 +73,10 @@ public class Controller {
             return Response.status(400).entity(makeErrorJson("Param k or v not set!", 400)).build();
         }
 
+        if (k.isEmpty() || jsonRaw.isEmpty()){
+            return Response.status(400).entity(makeErrorJson("Param k or v not set!", 400)).build();
+        }
+
         Runner runner = Runner.getInstance();
         String fileName = runner.getVolPath() + "/" + k + ".json";
         File file = new File(fileName);
@@ -96,7 +102,7 @@ public class Controller {
             return Response.status(500).entity(makeErrorJson(e.toString(), 500)).build();
         }
 
-        String resString = makeStatusJson(createdFile, fileName, file.length());
+        String resString = makeStatusJson("File_created", createdFile, fileName, file.length(),"");
 
         return Response.status(200).entity(resString).build();
 
@@ -114,6 +120,31 @@ public class Controller {
     @Path("/delete")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response delete(@FormDataParam("k") String k){
+
+        if (k == null){
+            return Response.status(400).entity(makeErrorJson("Param k not set", 400)).build();
+        }
+
+        if (k.isEmpty()){
+            return Response.status(400).entity(makeErrorJson("Param k not set!", 400)).build();
+        }
+
+        Runner runner = Runner.getInstance();
+        String fileName = runner.getVolPath() + "/" + k + ".json";
+        File file = new File(fileName);
+        boolean fileDeleted;
+
+        try {
+            fileDeleted = Files.deleteIfExists(file.toPath());
+        } catch (Exception e){
+            System.out.println("Could not delete file " + fileName);
+            return Response.status(500).entity(makeErrorJson(e.toString(), 500)).build();
+        }
+
+        String resString = makeStatusJson("file_deleted", fileDeleted, fileName, 0,"");
+        return Response.status(200).entity(resString).build();
+
+        /*
         Runner runner = Runner.getInstance();
         try{
             runner.getDbMap().remove(k);
@@ -121,12 +152,45 @@ public class Controller {
             return Response.status(400).entity(makeErrorJson(e.toString(),400)).build();
         }
         return Response.status(200).build();
+
+         */
     }
 
     @POST
     @Path("/search")
     @Produces(MediaType.APPLICATION_JSON)
     public Response search(@FormDataParam("k") String k){
+        if (k == null){
+            return Response.status(400).entity(makeErrorJson("Param k not set", 400)).build();
+        }
+
+        if (k.isEmpty()){
+            return Response.status(400).entity(makeErrorJson("Param k not set!", 400)).build();
+        }
+
+        Runner runner = Runner.getInstance();
+        String fileName = runner.getVolPath() + "/" + k + ".json";
+        File file = new File(fileName);
+        boolean exist = file.exists();
+        String resString = "";
+
+        if (!exist){
+            resString = makeStatusJson("file_exist", false, fileName, 0,"");
+            return Response.status(200).entity(resString).build();
+        }
+
+        String content = "";
+        try{
+            content = new String(Files.readAllBytes(Paths.get(fileName)));
+        } catch (Exception e){
+            return Response.status(500).entity(makeErrorJson(e.toString(), 500)).build();
+        }
+
+        resString = makeStatusJson("file_exist", true, fileName, content.length(),content);
+        return Response.status(200).entity(resString).build();
+
+
+        /*
         Runner runner = Runner.getInstance();
         String ret = "";
         try{
@@ -135,6 +199,8 @@ public class Controller {
             return Response.status(400).entity(makeErrorJson(e.toString(),400)).build();
         }
         return Response.status(200).entity(ret).build();
+        */
+
     }
 
 
