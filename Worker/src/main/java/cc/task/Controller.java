@@ -13,6 +13,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
 
@@ -34,6 +35,11 @@ public class Controller {
     private String makeErrorJson(String msg, int statusCode){
         JsonObjectBuilder main = Json.createObjectBuilder();
         return main.add("Status", statusCode).add("MSG", msg).build().toString();
+    }
+
+    private String makeStatusJson(boolean fileCreated, String fileName, long fileSize){
+        JsonObjectBuilder main = Json.createObjectBuilder();
+        return main.add("File_create", fileCreated).add("fileName", fileName).add("fileSize", fileSize).build().toString();
     }
 
     @GET
@@ -60,28 +66,41 @@ public class Controller {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_FORM_URLENCODED)
     public Response insert(@FormDataParam("k") String k, @FormDataParam("v") String jsonRaw){
+
+        if (k == null || jsonRaw == null){
+            return Response.status(400).entity(makeErrorJson("Param k or v not set!", 400)).build();
+        }
+
         Runner runner = Runner.getInstance();
         String fileName = runner.getVolPath() + "/" + k + ".json";
         File file = new File(fileName);
+        boolean createdFile = true;
 
         try {
-
             if (!file.createNewFile()) {
-                
+                createdFile = false;
+                PrintWriter writer = new PrintWriter(file);
+                writer.close();
             }
-
         } catch (Exception e){
             System.out.println("Could not read/create file " + fileName);
-            return Response.status(500).build();
+            return Response.status(500).entity(makeErrorJson(e.toString(), 500)).build();
         }
 
+        try{
+            PrintWriter writer = new PrintWriter(file);
+            writer.print(jsonRaw);
+            writer.close();
+        } catch (Exception e){
+            System.out.println("Cannot print to file " + fileName);
+            return Response.status(500).entity(makeErrorJson(e.toString(), 500)).build();
+        }
 
+        String resString = makeStatusJson(createdFile, fileName, file.length());
 
-
-
+        return Response.status(200).entity(resString).build();
 
         /*
-
         try{
             runner.getDbMap().put(k, jsonRaw);
         } catch (Exception e) {

@@ -12,8 +12,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import javax.json.Json;
-import javax.swing.text.html.parser.Entity;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -270,7 +268,7 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/insert");
 
-        if (res != null) System.out.println("Insert responded with Code: " + res.getStatusLine().getStatusCode());
+        String body = readResponse(res);
 
         long finish = System.currentTimeMillis();
         System.out.println("Insert Took " + (finish-start) + " ms to Execute. (Inserted " + data.key + ")");
