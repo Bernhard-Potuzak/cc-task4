@@ -12,6 +12,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.PrintWriter;
 import java.io.StringReader;
 
 @Path("")
@@ -29,9 +31,6 @@ public class Controller {
         return bodyJson;
     }
 
-
-
-
     private String makeErrorJson(String msg, int statusCode){
         JsonObjectBuilder main = Json.createObjectBuilder();
         return main.add("Status", statusCode).add("MSG", msg).build().toString();
@@ -45,21 +44,51 @@ public class Controller {
     }
 
     @POST
+    @Path("/getStatus")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getStatus(){
+        Runner runner = Runner.getInstance();
+        JsonObjectBuilder bodyJson = Json.createObjectBuilder();
+        bodyJson.add("file", runner.fileName);
+        bodyJson.add("numVal", runner.getDbMap().getSize());
+        return Response.status(200).entity(bodyJson.build().toString()).build();
+
+    }
+
+    @POST
     @Path("/insert")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_FORM_URLENCODED)
     public Response insert(@FormDataParam("k") String k, @FormDataParam("v") String jsonRaw){
-
-        System.out.println(k);
-        System.out.println(jsonRaw);
-
         Runner runner = Runner.getInstance();
+        String fileName = runner.getVolPath() + "/" + k + ".json";
+        File file = new File(fileName);
+
+        try {
+
+            if (!file.createNewFile()) {
+                
+            }
+
+        } catch (Exception e){
+            System.out.println("Could not read/create file " + fileName);
+            return Response.status(500).build();
+        }
+
+
+
+
+
+
+        /*
+
         try{
             runner.getDbMap().put(k, jsonRaw);
         } catch (Exception e) {
             return Response.status(400).entity(makeErrorJson(e.toString(),400)).build();
         }
         return Response.status(200).build();
+        */
     }
 
     @DELETE

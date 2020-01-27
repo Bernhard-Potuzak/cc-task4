@@ -6,7 +6,9 @@ services:
         ports:
             - "10101:8080"
         volumes:
-            - worker_vol_1:/shared
+            - vol_1:/shared
+        environment:
+            - id=1
             
     worker2:
         image: worker
@@ -14,7 +16,9 @@ services:
         ports:
             - "10102:8080"
         volumes:
-            - worker_vol_2:/shared
+            - vol_2:/shared
+        environment:
+            - id=2
         
     worker3:
         image: worker
@@ -22,7 +26,9 @@ services:
         ports:
             - "10103:8080"
         volumes:
-            - worker_vol_3:/shared
+            - vol_3:/shared
+        environment:
+            - id=3           
             
     worker4:
         image: worker
@@ -30,16 +36,18 @@ services:
         ports:
             - "10104:8080"
         volumes:
-            - worker_vol_4:/shared
+            - vol_4:/shared
+        environment:
+            - id=4
 networks:
     default:
         external:
             name: mainNet
         
 volumes:
-    worker_vol_1:
-    worker_vol_2:
-    worker_vol_3:
-    worker_vol_4:
+    vol_1:
+    vol_2:
+    vol_3:
+    vol_4:
     
         

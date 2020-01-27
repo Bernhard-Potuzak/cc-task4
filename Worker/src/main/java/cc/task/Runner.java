@@ -20,6 +20,7 @@ public class Runner implements Runnable {
     private int id;
     private DB db = null;
     private HTreeMap<String, String> dbMap;
+    public String fileName;
 
     private Runner(int id, String volPath) {
         this.id = id;
@@ -30,6 +31,7 @@ public class Runner implements Runnable {
 
 
         try {
+            this.fileName = volPath + "/file.db";
             this.db = DBMaker.fileDB(volPath + "/file.db").make();
             System.out.println("db created, create dbMap");
             this.dbMap = db
@@ -47,7 +49,7 @@ public class Runner implements Runnable {
         client.property(ClientProperties.CONNECT_TIMEOUT, 2000);
         client.property(ClientProperties.READ_TIMEOUT, 2000);
 
-        System.out.println("Runnter created without error");
+        System.out.println("Runner created without error");
     }
 
     static private Runner instance;
@@ -80,7 +82,6 @@ public class Runner implements Runnable {
             Thread.sleep(5000);
 
         } catch (Exception ignored) { }
-        System.out.println("CPanel Running. Use /config with ConfigJson to set Mapping. Use /startSystem after config to start ");
         while (!stopThread) {
             try {
                 Thread.sleep(2000);
@@ -91,6 +92,14 @@ public class Runner implements Runnable {
             }
         }
 
+    }
+
+    public String getVolPath() {
+        return volPath;
+    }
+
+    public int getId() {
+        return id;
     }
 }
 

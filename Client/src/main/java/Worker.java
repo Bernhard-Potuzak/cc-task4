@@ -153,6 +153,16 @@ public class Worker {
 
         }
 
+        /*
+        setUrl("http://localhost:50001");
+        timeUsed = pingUrl();
+        try{
+            System.out.println("ping " + url + " used ms " + timeUsed);
+            csvPrinter.printRecord(System.currentTimeMillis(), "Ping", timeUsed);
+        } catch (Exception ignored){}
+*/
+
+
         setUrl("http://localost:10101/Worker");
 
         for (int i = 0; i < 2; i++) {
@@ -183,17 +193,7 @@ public class Worker {
 
         if (res != null) System.out.println("Delete responded with Code: " + res.getStatusLine().getStatusCode());
 
-        InputStream body = null;
-        try {
-            body = res.getEntity().getContent();
-        } catch (Exception e){
-            System.out.println("Could not read Response Body");
-        }
-
-        if (body != null){
-            System.out.println("Response: " + body.toString());
-        }
-
+        String body = readResponse(res);
         long finish = System.currentTimeMillis();
         System.out.println("Delete Took " + (finish-start) + " ms to Execute");
         return finish-start;
@@ -208,19 +208,7 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/range");
 
-        if (res != null) System.out.println("Range responded with Code: " + res.getStatusLine().getStatusCode());
-
-        InputStream body = null;
-        try {
-            body = res.getEntity().getContent();
-        } catch (Exception e){
-            System.out.println("Could not read Response Body");
-        }
-
-        if (body != null){
-            System.out.println("Response: " + body.toString());
-        }
-
+        String body = readResponse(res);
         long finish = System.currentTimeMillis();
         System.out.println("Range Took " + (finish-start) + " ms to Execute");
         return finish-start;
@@ -236,9 +224,20 @@ public class Worker {
 
         CloseableHttpResponse res = execMultiPart(builder, url + "/search");
 
-        if (res != null) System.out.println("Insert responded with Code: " + res.getStatusLine().getStatusCode());
+        String body = readResponse(res);
+        long finish = System.currentTimeMillis();
+        System.out.println("Search Took " + (finish-start) + " ms to Execute");
+        return finish-start;
+    }
 
+    private String readResponse(CloseableHttpResponse res) {
         String body = null;
+        if (res != null){
+            System.out.println("Insert responded with Code: " + res.getStatusLine().getStatusCode());
+        } else {
+            System.out.println("Respond was null");
+            return "";
+        }
         try {
             HttpEntity resEntity = res.getEntity();
             body = EntityUtils.toString(resEntity);
@@ -253,9 +252,7 @@ public class Worker {
             System.out.println("Response: " + body);
         }
 
-        long finish = System.currentTimeMillis();
-        System.out.println("Search Took " + (finish-start) + " ms to Execute");
-        return finish-start;
+        return body;
     }
 
 

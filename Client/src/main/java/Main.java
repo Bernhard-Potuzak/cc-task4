@@ -34,7 +34,7 @@ public class Main {
                         "t -> testRun (Enter and then Filename.csv), " + '\n' +
                         "h -> hash a Value. (Enter then String), " + '\n' +
                         "m -> Show menu again, " + '\n' +
-                        "a -> Insert all if important");
+                        "a -> Insert all if imported");
                 showMenu = false;
             }
             userinput = sc.next().charAt(0);
