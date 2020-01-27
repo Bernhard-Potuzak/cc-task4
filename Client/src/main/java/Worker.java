@@ -164,6 +164,10 @@ public class Worker {
 
     }
 
+    String getKey(int place){
+        return allData.get(place).key;
+    }
+
     String delete(String key){
         long start = System.currentTimeMillis();
 

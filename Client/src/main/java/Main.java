@@ -13,6 +13,7 @@ public class Main {
 
     public static void main(String[] args){
 
+
         try{
 
             loop();
@@ -46,7 +47,7 @@ public class Main {
         boolean showMenu = true;
         Worker worker = Worker.getWorker();
         Scanner sc = new Scanner(System.in);
-        worker.setUrl("http://localhost:10101/Worker");
+        worker.setUrl("http://localhost:10005");
         while(true){
             if (showMenu) {
                 System.out.println("What you want: " + '\n' +
@@ -68,7 +69,9 @@ public class Main {
             userInput = sc.next().charAt(0);
             switch(userInput){
                 case'l':
-                    
+                    int l = sc.nextInt();
+                    System.out.println(worker.getKey(l));
+                    break;
                 case 'a':
                     if (worker.isInported){
                         worker.insertAll();

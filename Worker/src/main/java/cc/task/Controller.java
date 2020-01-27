@@ -5,15 +5,9 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.json.*;
 import javax.ws.rs.*;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.nio.file.Files;
@@ -64,8 +58,44 @@ public class Controller {
     }
 
     @POST
+    @Path("/range")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response range(@FormDataParam("k1") String k1, @FormDataParam("k2") String k2){
+        Runner runner = Runner.getInstance();
+        JsonArrayBuilder jab = Json.createArrayBuilder();
+        JsonObjectBuilder job;
+        String tempKey;
+        File dir = new File(runner.getVolPath());
+        String tempFileName;
+        File[] dirList = dir.listFiles();
+        if (dirList != null){
+            for (File file : dirList){
+                tempKey = file.getName();
+                if (tempKey.contains(".json")){
+                    tempKey = tempKey.replace(".json", "");System.out.println(file.getName());
+                    int lower = tempKey.compareTo(k1);
+                    int upper = tempKey.compareTo(k2);
+                    if (lower >= 0 && upper <= 0){
+                        tempFileName = runner.getVolPath() + "/" + file.getName();
+                        try {
+                            jab.add(new String(Files.readAllBytes(Paths.get(tempFileName))));
+                        } catch (Exception e){
+                            System.out.println("Could not retrieve data from " + tempFileName + " Error: " + e.toString());
+                        }
+                    }
+                }
+            }
+        } else {
+            return Response.status(500).build();
+        }
+
+        return Response.status(200).entity(jab.build().toString()).build();
+
+    }
+
+    @POST
     @Path("/insert")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    // @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response insert(@FormDataParam("k") String k, @FormDataParam("v") String jsonRaw){
 
