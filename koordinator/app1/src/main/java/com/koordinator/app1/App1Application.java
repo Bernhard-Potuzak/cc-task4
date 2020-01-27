@@ -22,10 +22,10 @@ import java.util.Map;
 public class App1Application {
 
     public static String[] WorkerAddresses = {
-            "http://localhost:10101/",
-            "http://localhost:10102/",
-            "http://localhost:10103/",
-            "http://localhost:10104/"
+            "http://worker1:8080/",
+            "http://worker2:8080/",
+            "http://worker3:8080/",
+            "http://worker4:8080/"
     };
 
     public static String[] AssignedAddresses = new String[16];
@@ -53,11 +53,12 @@ public class App1Application {
     public static String getResponse(String address,String k,String v,HttpServletRequest request) throws URISyntaxException {
         try {
             URL url = new URL(address);
-            URI uri = new URI(url.getProtocol(), null, url.getHost(), url.getPort(), request.getRequestURI(), request.getQueryString(), null);
+            String requestUri = "/Worker" + request.getRequestURI();
+            URI uri = new URI(url.getProtocol(), null, url.getHost(), url.getPort(), requestUri, request.getQueryString(), null);
             RestTemplate restTemplate = new RestTemplate();
             LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-            map.add("k", new ClassPathResource(k));
-            map.add("v", new ClassPathResource(v));
+            map.add("k", k);
+            map.add("v", v);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -73,10 +74,11 @@ public class App1Application {
     public static String getResponse(String address,String k,HttpServletRequest request) throws URISyntaxException {
         try {
             URL url = new URL(address);
-            URI uri = new URI(url.getProtocol(), null, url.getHost(), url.getPort(), request.getRequestURI(), request.getQueryString(), null);
+            String requestUri = "/Worker" + request.getRequestURI();
+            URI uri = new URI(url.getProtocol(), null, url.getHost(), url.getPort(), requestUri, request.getQueryString(), null);
             RestTemplate restTemplate = new RestTemplate();
             LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-            map.add("k", new ClassPathResource(k));
+            map.add("k", k);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
