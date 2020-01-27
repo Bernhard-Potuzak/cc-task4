@@ -66,7 +66,7 @@ public class Controller {
     @POST
     @Path("/insert")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response insert(@FormDataParam("k") String k, @FormDataParam("v") String jsonRaw){
 
         if (k == null || jsonRaw == null){
