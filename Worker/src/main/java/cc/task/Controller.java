@@ -63,6 +63,7 @@ public class Controller {
     public Response range(@FormDataParam("k1") String k1, @FormDataParam("k2") String k2){
         Runner runner = Runner.getInstance();
         JsonArrayBuilder jab = Json.createArrayBuilder();
+        boolean found = false;
         JsonObjectBuilder job;
         String tempKey;
         File dir = new File(runner.getVolPath());
@@ -79,6 +80,7 @@ public class Controller {
                         tempFileName = runner.getVolPath() + "/" + file.getName();
                         try {
                             jab.add(new String(Files.readAllBytes(Paths.get(tempFileName))));
+                            found = true;
                         } catch (Exception e){
                             System.out.println("Could not retrieve data from " + tempFileName + " Error: " + e.toString());
                         }
@@ -88,8 +90,9 @@ public class Controller {
         } else {
             return Response.status(500).build();
         }
-
-        return Response.status(200).entity(jab.build().toString()).build();
+        int status = 404;
+        if (found) status = 200;
+        return Response.status(status).entity(jab.build().toString()).build();
 
     }
 
