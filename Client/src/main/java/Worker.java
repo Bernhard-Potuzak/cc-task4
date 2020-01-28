@@ -83,7 +83,7 @@ public class Worker {
             hash ^= k.charAt((i));
             hash *= prime;
         }
-
+        if (hash < 0) hash *= -1;
         return hash;
     }
 
@@ -91,7 +91,7 @@ public class Worker {
 
     long pingUrl(){
         long startTime = System.currentTimeMillis();
-        HttpGet httpget = new HttpGet(url + "/ping");
+        HttpGet httpget = new HttpGet(url + "/test");
         try {
             HttpResponse res = httpClient.execute(httpget);
             System.out.println("Responded: " + res.getStatusLine().getStatusCode());
@@ -124,26 +124,14 @@ public class Worker {
 
         long timeUsed;
 
-        for (int i = 1; i <= 4; i++){
-            setUrl("http://localhost:1010" + i + "/Worker");
-            timeUsed = pingUrl();
-            try {
-                csvPrinter.printRecord(System.currentTimeMillis(), "Ping", timeUsed);
-            } catch (Exception ignore){}
 
-        }
-
-        /*
         setUrl("http://localhost:50001");
         timeUsed = pingUrl();
         try{
             System.out.println("ping " + url + " used ms " + timeUsed);
             csvPrinter.printRecord(System.currentTimeMillis(), "Ping", timeUsed);
         } catch (Exception ignored){}
-*/
 
-
-        setUrl("http://localost:10101/Worker");
 
         for (int i = 0; i < 2; i++) {
             try {
@@ -165,7 +153,7 @@ public class Worker {
     }
 
     String getKey(int place){
-        return allData.get(place).key;
+        return allData.get(place).toString();
     }
 
     String delete(String key){
@@ -251,6 +239,7 @@ public class Worker {
         builder.addTextBody("k", data.key, ContentType.TEXT_PLAIN);
         builder.addTextBody("v", data.value, ContentType.APPLICATION_JSON);
 
+        System.out.println("sending to " + url + "/insert");
         CloseableHttpResponse res = execMultiPart(builder, url + "/insert");
 
         String body = readResponse(res, "insert");
@@ -261,8 +250,8 @@ public class Worker {
 
     }
 
-    void importCSV() throws FileNotFoundException {
-        String fileName = getClass().getClassLoader().getResource("netflix.csv").getFile();
+    void importCSV(String fileName) throws FileNotFoundException {
+        // String fileName = getClass().getClassLoader().getResource("netflix.csv").getFile();
         boolean gotHeader = false;
         List<String> headers = new ArrayList<>();
         if (fileName == null){

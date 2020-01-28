@@ -47,11 +47,12 @@ public class Main {
         boolean showMenu = true;
         Worker worker = Worker.getWorker();
         Scanner sc = new Scanner(System.in);
-        worker.setUrl("http://localhost:10005");
+        worker.setUrl("http://localhost:50001");
         while(true){
+            //  "t -> testRun (Enter and then Filename.csv), " + '\n' +
             if (showMenu) {
                 System.out.println("What you want: " + '\n' +
-                        "c -> Import CSV, " + '\n' +
+                        "c -> Import CSV (Enter then enter Path to file), " + '\n' +
                         "x -> exit, " + '\n' +
                         "u -> set URL (Enter then type url), " + '\n' +
                         "p -> Ping Url, " + '\n' +
@@ -59,7 +60,6 @@ public class Main {
                         "s -> search (Enter then key of data), " + '\n' +
                         "r -> range (Enter then key1 Enter then key2), " + '\n' +
                         "d -> delete (Enter then key of data), " + '\n' +
-                        "t -> testRun (Enter and then Filename.csv), " + '\n' +
                         "l -> Check Data in place. Enter then place, " + '\n' +
                         "h -> hash a Value. (Enter then String), " + '\n' +
                         "m -> Show menu again, " + '\n' +
@@ -93,7 +93,8 @@ public class Main {
                     //printToCSV(staticPrinter, System.currentTimeMillis(),"delete", worker.delete(d));
                     break;
                 case 'c':
-                    worker.importCSV();
+                    String c = sc.next();
+                    worker.importCSV(c);
                     break;
                 case 'h':
                     String h = sc.next();
@@ -114,7 +115,7 @@ public class Main {
                     }
                     break;
                 case 't':
-                    System.out.println(worker.testRun(sc.next()));
+                    // System.out.println(worker.testRun(sc.next()));
                     break;
                 case 's':
                     String p = sc.next();
