@@ -35,9 +35,11 @@ public class App1Application {
     public static String[] AssignedAddresses = new String[16];
 
     public static void setAssignedAddresses() {
+        int workerCounter = 0;
         for (int i = 0; i < AssignedAddresses.length; i++) {
             if (i % 4 == 0) {
-                AssignedAddresses[i] = WorkerAddresses[i % 4];
+                AssignedAddresses[i] = WorkerAddresses[workerCounter];
+                workerCounter++;
             }
         }
     }

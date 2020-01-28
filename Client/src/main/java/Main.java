@@ -98,8 +98,9 @@ public class Main {
                     break;
                 case 'h':
                     String h = sc.next();
-                    long hashed = worker.hashMe(h);
-                    System.out.println(h + " hashes to " + hashed + " and maps with mod " + modFac + " " + hashed%modFac);
+                    long hash = worker.hashMe(h.getBytes());
+                    int initialIndex = Math.abs((int) (hash % modFac));
+                    System.out.println(h + " hashes to " + hash + " and maps with mod " + modFac + " " + initialIndex);
                     break;
                 case 'm':
                     showMenu = true;

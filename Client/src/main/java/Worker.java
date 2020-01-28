@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Function;
+import java.lang.Math;
 
 public class Worker {
 
@@ -75,16 +75,16 @@ public class Worker {
     }
 
     // Hashing Function with 64bit Initioal Hash + 64 Prime
-    public long hashMe(String k){
-        long hash = 0xcbf29ce484222325L;
-        long prime =  0x100000001b3L;
-        int kLen = k.length();
-        for (int i = 0; i < kLen; i++){
-            hash ^= k.charAt((i));
-            hash *= prime;
+    long hashMe(byte[] k){
+        final long FNV_64_INIT = 0xcbf29ce484222325L;
+        final long FNV_64_PRIME = 0x100000001b3L;
+        long rv = FNV_64_INIT;
+        final int len = k.length;
+        for(int i = 0; i < len; i++) {
+            rv ^= k[i];
+            rv *= FNV_64_PRIME;
         }
-        if (hash < 0) hash *= -1;
-        return hash;
+        return Math.abs(rv);
     }
 
 

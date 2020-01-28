@@ -80,8 +80,7 @@ public class Runner implements Runnable {
         while (!stopThread) {
             try {
                 Thread.sleep(2000);
-                System.out.println("Im Running");
-                System.out.println(System.getenv("id"));
+                System.out.println("Im Running. ID: " + id);
             } catch (Exception e) {
                 System.out.println("Thread could not sleep or some reason: " + e);
             }
